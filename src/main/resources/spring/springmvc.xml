@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!--自动扫描 装配-->
+    <context:component-scan base-package="com.miku"/>
+
+    <!--支持@RequestMapping-->
+    <mvc:annotation-driven
+            conversion-service="conversionService"
+            validator="validator"/>
+
+    <!--配置全局异常处理器
+    实现了HandlerExceptionResolver接口就是全局异常处理器-->
+    <bean class="com.miku.exception.CustomExceptionResolver"/>
+
+    <!--配置文件上传-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--设置上传文件大小，最大5M-->
+        <property name="maxUploadSize" value="5242880"/>
+    </bean>
+
+    <!--自定义参数绑定-->
+    <bean id="conversionService"
+          class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <!--自定义转换器-->
+        <property name="converters">
+            <!--<list>-->
+            <!--自定义日期参数绑定-->
+            <bean class="com.miku.controller.converter.CustomDateConverter"/>
+            <!--</list>-->
+        </property>
+    </bean>
+
+    <bean id="messageSource"
+          class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="classpath:message"/>
+        <property name="fileEncodings" value="UTF-8"/>
+        <property name="cacheSeconds" value="120"/>
+    </bean>
+
+    <!-- 以下 validator  ConversionService 在使用 mvc:annotation-driven 会 自动注册-->
+    <bean id="validator"
+          class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass"
+                  value="org.hibernate.validator.HibernateValidator"/>
+        <!-- 如果不加默认到 使用classpath下的 ValidationMessages.properties -->
+        <property name="validationMessageSource"
+                  ref="messageSource"/>
+    </bean>
+
+    <!--定义视图解析器ViewResolver-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+
+    <!-- 静态资源解析
+    包括 ：js、css、img、..
+     -->
+	<mvc:resources location="/pic/" mapping="/pic/**"/>
+
+    <mvc:interceptors>
+<!--
+        多个拦截器，顺序执行
+        首先，放置系统日志拦截器，且必须放行
+        其次，放置登录拦截器
+        再次，放置权限校验拦截器
+-->
+        <!--系统日志拦截器-->
+        <mvc:interceptor>
+            <!--/**拦截所有url包括子url路径-->
+            <mvc:mapping path="/**"/>
+            <bean class="com.miku.interceptor.LogInterceptor"/>
+        </mvc:interceptor>
+
+        <!--登录拦截器-->
+        <mvc:interceptor>
+            <!--/**拦截所有url包括子url路径-->
+            <mvc:mapping path="/**"/>
+            <bean class="com.miku.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+</beans>
