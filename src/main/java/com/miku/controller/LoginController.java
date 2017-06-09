@@ -38,7 +38,7 @@ public class LoginController {
     public String logout(HttpSession session) {
         //清除session
         session.invalidate();
-        //重定向到登录页面
+        //重定向到登录页
         return "redirect:login";
     }
 
