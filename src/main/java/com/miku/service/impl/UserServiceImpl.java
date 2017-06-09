@@ -1,5 +1,6 @@
 package com.miku.service.impl;
 
+import com.miku.dao.UserMapperCustom;
 import com.miku.mapper.UserMapper;
 import com.miku.po.User;
 import com.miku.service.UserService;
@@ -18,6 +19,17 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private UserMapperCustom userMapperCustom;
+
+    @Override
+    public boolean login(String username, String password) {
+        if (userMapperCustom.selectByUsername(username).getPassword().equals(password)){
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public boolean regist(User user) {

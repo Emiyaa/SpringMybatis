@@ -23,14 +23,16 @@ public class LoginController {
     private UserService userService;
 
     //登录
-    @RequestMapping("/login")
-    public String login(HttpSession session ,
+    @RequestMapping("/loginTo")
+    public String loginTo(HttpSession session ,
                         String username , String  password) {
         //调用service方法进行登录验证
-
-        session.setAttribute("username" , username);
-        //重定向到商品查询页面
-        return "redirect:items/queryItems";
+        if (userService.login(username ,password)){
+            session.setAttribute("username" , username);
+            //重定向到商品查询页面
+            return "redirect:items/queryItems";
+        }
+        return "login";
     }
 
     //登录
@@ -39,7 +41,7 @@ public class LoginController {
         //清除session
         session.invalidate();
         //重定向到登录页
-        return "redirect:login";
+        return "login";
     }
 
     //跳转到注册
