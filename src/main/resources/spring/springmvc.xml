@@ -69,6 +69,7 @@
     <!-- 静态资源解析
     包括 ：js、css、img、..
      -->
+    <mvc:resources location="/js/" mapping="/js/**"/>
 	<mvc:resources location="/pic/" mapping="/pic/**"/>
 
     <mvc:interceptors>

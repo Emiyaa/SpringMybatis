@@ -20,5 +20,14 @@ public interface ItemsService {
     public ItemsCustom findItemsById(Integer id);
 
     //商品信息修改
-    public void updateItems(Integer id , ItemsCustom itemsCustom);
+    public int updateItem(Integer id , ItemsCustom itemsCustom);
+
+    //批量商品信息修改
+    public int updateItems(ItemsQueryVo itemsQueryVo);
+
+    //商品删除
+    public int deleteItem(Integer id);
+
+    //批量商品删除
+    public int deleteItems(Integer[] id);
 }

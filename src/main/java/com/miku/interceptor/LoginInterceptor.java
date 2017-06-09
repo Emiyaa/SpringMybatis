@@ -1,5 +1,9 @@
 package com.miku.interceptor;
 
+import com.miku.dao.PublicUrlCustom;
+import com.miku.mapper.PublicurlMapper;
+import com.miku.po.Publicurl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -18,6 +22,9 @@ import javax.servlet.http.HttpSession;
 public class LoginInterceptor
         implements HandlerInterceptor{
 
+    @Autowired
+    private PublicUrlCustom publicUrlCustom;
+
     //进入Handler方法之前执行
     //用于身份验证等
     @Override
@@ -26,9 +33,16 @@ public class LoginInterceptor
         String url = request.getRequestURI();
         //判断url是否是公开地址，公开地址配置在配置文件中
         //公开地址是登录提交的地址
-        if (url.indexOf("login") >= 0){
+        int i = publicUrlCustom.selectByUrl(url).size();
+        if (i > 0){
+
             //是登录就放行
             return true;
+        }else {
+            url = url.substring(url.indexOf("/") , url.indexOf("/" , url.indexOf("/") + 1) + 1);
+            if (publicUrlCustom.selectByUrl(url).size() > 0){
+                return true;
+            }
         }
         //判断session中的username
         HttpSession session = request.getSession();

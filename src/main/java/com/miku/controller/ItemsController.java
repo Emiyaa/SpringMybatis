@@ -2,6 +2,7 @@ package com.miku.controller;
 
 import com.miku.exception.CustomException;
 import com.miku.service.ItemsService;
+import com.miku.util.UploadFile;
 import com.miku.vo.ItemsCustom;
 import com.miku.vo.ItemsQueryVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created with com.miku.controller
@@ -30,10 +27,14 @@ import java.util.UUID;
  * Time :       23:03
  */
 @Controller
+@RequestMapping("/items")
 public class ItemsController {
 
     @Autowired
     private ItemsService itemsService;
+
+    @Autowired
+    private UploadFile uploadFile;
 
     //商品查询
     @RequestMapping("/queryItems")
@@ -48,7 +49,7 @@ public class ItemsController {
         // 在jsp页面中通过itemsList取数据
         mv.addObject("itemsList", itemsList);
         //指定返回视图
-        mv.setViewName("itemsList");
+        mv.setViewName("item/itemsList");
         return mv;
     }
 
@@ -61,7 +62,7 @@ public class ItemsController {
             throw new CustomException("没有该商品！");
         }
         model.addAttribute("items", itemsCustom);
-        return "editItem";
+        return "item/editItem";
     }
 
     //商品修改提交
@@ -83,41 +84,88 @@ public class ItemsController {
             //输出错误信息
             List<ObjectError> errors = bindingResult.getAllErrors();
             model.addAttribute("errors" , errors);
-            return "editItem";
+            return "item/editItem";
         }
 
-        if (items_pic != null){
-            //文件原始名称
-            String fileName = items_pic.getOriginalFilename();
-            if (fileName != null && fileName != "" && fileName.length() > 0){
-                String path = request.getSession().getServletContext().getRealPath("/");
-                //新建当前天目录
-                Calendar date=Calendar.getInstance();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                String datePath = sdf.format(date.getTime());
-                File path1 = new File(path + "/pic");
-                File path2 = new File(path + "/pic/" + datePath);
-                if (!path2.exists()){
-                    if(!path1.exists()){
-                        path1.mkdir();
-                    }
-                    path2.mkdir();
-                }
-                //新文件名
-                String newFileName = UUID.randomUUID() +
-                        fileName.substring(fileName.lastIndexOf("."));
-                //新文件
-                File newFlie = new File(path + "/pic/" + datePath + "/" + newFileName);
-                //将内存中的文件写入磁盘
-                items_pic.transferTo(newFlie);
-                //如果上传成功，将图片路径存入itemsCustom
-                newFileName = "/pic/" + datePath + "/" + newFileName;
-                itemsCustom.setPic(newFileName);
-            }
+        int flag = uploadFile.uploadPicture(request , items_pic , itemsCustom);
+        if (flag > 0){
+            itemsService.updateItem(id, itemsCustom);
+            //重定向到商品列表页面  转发forward
+            return "redirect:editItem?id=" + id;
+        }else {
+            String errors = "修改失败！";
+            model.addAttribute("errors" , errors);
+            return "item/editItem";
         }
-        itemsService.updateItems(id , itemsCustom);
-        //重定向到商品列表页面  转发forward
-        return "redirect:editItem?id=" + id;
+
+    }
+
+    // 批量修改商品页面，将商品信息查询出来，在页面中可以编辑商品信息
+    @RequestMapping("/editAllItems")
+    public ModelAndView editItemsQuery(ItemsQueryVo itemsQueryVo) throws Exception {
+
+        // 调用service查找 数据库，查询商品列表
+        List<ItemsCustom> itemsList = itemsService.findItemsList(itemsQueryVo);
+
+        // 返回ModelAndView
+        ModelAndView modelAndView = new ModelAndView();
+        // 相当 于request的setAttribut，在jsp页面中通过itemsList取数据
+        modelAndView.addObject("itemsList", itemsList);
+
+        modelAndView.setViewName("item/editItemsQuery");
+
+        return modelAndView;
+
+    }
+
+    // 批量修改商品提交
+    // 通过ItemsQueryVo接收批量提交的商品信息，将商品信息存储到itemsQueryVo中itemsList属性中。
+    @RequestMapping("/editAllItemsSubmit")
+    public String editAllItemsSubmit(ItemsQueryVo itemsQueryVo , Model model) throws Exception {
+
+        if (itemsService.updateItems(itemsQueryVo) == itemsQueryVo.getItemsList().size()){
+            //重定向到商品列表页面  转发forward
+            return "redirect:queryItems";
+        }else {
+            //重定向到商品列表页面  转发forward
+            String errors = "删除失败！";
+            model.addAttribute("errors" , errors);
+            return "item/queryItems";
+        }
+    }
+
+    //商品删除
+    @RequestMapping("/deleteItem")
+    public String deleteItem(Model model , Integer id)
+        throws Exception{
+
+        if (itemsService.deleteItem(id) > 0){
+            //重定向到商品列表页面  转发forward
+            return "redirect:queryItems";
+        }else {
+            //重定向到商品列表页面  转发forward
+            String errors = "删除失败！";
+            model.addAttribute("errors" , errors);
+            return "item/queryItems";
+        }
+
+    }
+
+    //批量商品删除
+    @RequestMapping("/deleteItems")
+    public String deleteItems(Model model , Integer[] items_id)
+        throws Exception{
+
+        if (itemsService.deleteItems(items_id) == items_id.length){
+            //重定向到商品列表页面  转发forward
+            return "redirect:queryItems";
+        }else {
+            //重定向到商品列表页面  转发forward
+            String errors = "删除失败！";
+            model.addAttribute("errors" , errors);
+            return "item/queryItems";
+        }
+
     }
 
 }

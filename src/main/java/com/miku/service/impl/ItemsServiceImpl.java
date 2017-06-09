@@ -47,17 +47,66 @@ public class ItemsServiceImpl implements ItemsService{
     }
 
     @Override
-    public void updateItems(Integer id, ItemsCustom itemsCustom) {
+    public int updateItem(Integer id, ItemsCustom itemsCustom) {
+        int flag = 0;
         //添加业务校验
         if (id != null){
             //更新商品信息
             //传入id
             itemsCustom.setId(id);
             //根据id更新所有信息
-            itemsMapper.updateByPrimaryKeyWithBLOBs(itemsCustom);
+            flag = itemsMapper.updateByPrimaryKeyWithBLOBs(itemsCustom);
+            return flag;
+        }else {
+            System.out.println("修改id为空！");
+            return flag;
+        }
+    }
+
+    @Override
+    public int updateItems(ItemsQueryVo itemsQueryVo) {
+        int flag = 0;
+        //添加业务校验
+        if (itemsQueryVo.getItemsList() != null){
+            //更新商品信息
+            for (ItemsCustom itemsCustom : itemsQueryVo.getItemsList()){
+                //根据id更新所有信息
+                flag += itemsMapper.updateByPrimaryKeyWithBLOBs(itemsCustom);
+            }
+            return flag;
+        }else {
+            System.out.println("修改id为空！");
+            return flag;
+        }
+    }
+
+    @Override
+    public int deleteItem(Integer id) {
+        int flag = 0;
+        //添加业务校验
+        if (id != null){
+            //删除商品信息
+            flag = itemsMapper.deleteByPrimaryKey(id);
         }else {
             System.out.println("修改id为空！");
         }
+        return flag;
+    }
+
+    @Override
+    public int deleteItems(Integer[] id) {
+        int flag = 0;
+        //添加业务校验
+        if (id != null){
+            //删除商品信息
+            for(Integer i : id){
+                flag += itemsMapper.deleteByPrimaryKey(i);
+            }
+
+        }else {
+            System.out.println("修改id为空！");
+        }
+        return flag;
     }
 
 
