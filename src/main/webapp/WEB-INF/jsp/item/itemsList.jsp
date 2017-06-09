@@ -12,22 +12,40 @@
 <head>
     <title>查询商品列表</title>
     <script type="text/javascript">
-        function deleteItems(){
+        function deleteItems() {
             //提交form
-            if(confirm('您确定要删除${item.name}商品吗？')){
-                document.itemsForm.action="${pageContext.request.contextPath }/items/deleteItems";
+            if (confirm('您确定要删除${item.name}商品吗？')) {
+                document.itemsForm.action = "${pageContext.request.contextPath }/items/deleteItems";
                 document.itemsForm.submit();
             }
         }
-        function editAllItems(){
+        function editAllItems() {
             //提交form
-            document.itemsForm.action="${pageContext.request.contextPath }/items/editAllItems";
+            document.itemsForm.action = "${pageContext.request.contextPath }/items/editAllItems";
             document.itemsForm.submit();
         }
-        function queryItems(){
+        function queryItems() {
             //提交form
-            document.itemsForm.action="${pageContext.request.contextPath }/items/queryItems";
+            document.itemsForm.action = "${pageContext.request.contextPath }/items/queryItems";
             document.itemsForm.submit();
+        }
+
+        // 选择或者反选 checkbox
+        function CheckSelect(thisform) {
+            // 遍历 form
+            for (var i = 0; i < thisform.elements.length; i++) {
+                // 提取控件
+                var checkbox = thisform.elements[i];
+                // 检查是否是指定的控件
+                if (checkbox.name === "items_id" && checkbox.type === "checkbox" && checkbox.checked === false) {
+                    // 正选
+                    checkbox.checked = true;
+                }
+                else if (checkbox.name === "items_id" && checkbox.type === "checkbox" && checkbox.checked === true) {
+                    // 反选
+                    checkbox.checked = false;
+                }
+            }
         }
     </script>
 </head>
@@ -46,12 +64,12 @@
         <table width="100%" border=1>
             <tr>
                 <td>
-                    商品名称：<input name="itemsCustom.name" />
+                    商品名称：<input name="itemsCustom.name"/>
                     <%--商品类型：--%>
                     <%--<select name="itemtype">--%>
-                        <%--<c:forEach items="${itemtypes }" var="itemtype">--%>
-                            <%--<option value="${itemtype.key }">${itemtype.value }</option>--%>
-                        <%--</c:forEach>--%>
+                    <%--<c:forEach items="${itemtypes }" var="itemtype">--%>
+                    <%--<option value="${itemtype.key }">${itemtype.value }</option>--%>
+                    <%--</c:forEach>--%>
                     <%--</select>--%>
 
                 </td>
@@ -64,7 +82,8 @@
         商品列表:
         <table width="100%" border="1">
             <tr>
-                <td><input type="checkbox" name="items_id" value=""/></td>
+                <td><input type="checkbox" name="items_id" value=""
+                           onclick="CheckSelect(this.form);return false;"/>反选</td>
                 <td>商品名称</td>
                 <td>商品价格</td>
                 <td>生产日期</td>
@@ -73,7 +92,7 @@
             </tr>
             <c:forEach items="${itemsList}" var="item">
                 <tr>
-                    <td><input type="checkbox" name="items_id" value="${item.id}"/></td>
+                    <td><input type="checkbox" name="items_id" value="${item.id}"/>${item.id}</td>
                     <td>${item.name}</td>
                     <td>${item.price}</td>
                     <td>
